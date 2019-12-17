@@ -13,28 +13,123 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
+import abc
 import json
+import logging
 import os
 import subprocess
 import sys
 import tempfile
 import time
-from string import Template
+import uuid
+
+
+class Cmd(object):
+    def __init__(self):
+        self._cmd = []
+
+    def add_cmd(self, cmd):
+        self._cmd.append(cmd)
+        return self
+
+    def rm(self, path):
+        self.add_cmd(f"rm {path}")
+        return self
+
+    def source(self, path):
+        self.add_cmd(f"source {path}")
+        return self
+
+    def scp(self, l_path, host, r_path):
+        self.add_cmd(f"scp {l_path} {host}:{r_path}")
+        return self
+
+    def cd(self, path):
+        self.add_cmd(f"cd {path}")
+        return self
+
+    def build(self, sep=" && "):
+        return sep.join(self._cmd)
+
+
+class Runner(object):
+    def __init__(self):
+        self.source = None
+
+    def add_source(self, path):
+        self.source = path
+
+    def need_source(self):
+        return self.source is not None
+
+    @abc.abstractmethod
+    def run_cmd(self, cmd: 'Cmd'):
+        pass
+
+
+class LocalRunner(Runner):
+    def __init__(self):
+        super().__init__()
+
+    def run_cmd(self, cmd: 'Cmd'):
+        uid = uuid.uuid1()
+        cmd_str = cmd.build()
+        logging.info(f"[CMD({uid})]submit cmd={cmd}")
+        subp = subprocess.Popen([cmd_str],
+                                shell=False,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT)
+        stdout, stderr = subp.communicate()
+        logging.info(f"[CMD({uid})]stdout={stdout}, stderr={stderr}")
+        return stdout.decode("utf-8")
+
+
+class RemoteRunner(Runner):
+
+    def __init__(self, host):
+        super().__init__()
+        self._host = host
+
+    def run_cmd(self, cmd: 'Cmd'):
+        uid = uuid.uuid1()
+        cmd_str = f"ssh {self._host} {cmd.build()}"
+        logging.info(f"[CMD({uid})]submit cmd={cmd}")
+        subp = subprocess.Popen([cmd_str],
+                                shell=False,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT)
+        stdout, stderr = subp.communicate()
+        logging.info(f"[CMD({uid})]stdout={stdout}, stderr={stderr}")
+        return stdout.decode("utf-8")
+
+    def scp(self, f_name):
+        cmd = Cmd().scp(f_name, self._host, f_name)
+        self.run_cmd(cmd)
+
+
+#
+# class AsyncRunner(Runner):
+#     raise NotImplementedError()  # todo: async
 
 
 class Submitter(object):
 
-    def __init__(self):
-        self._fate_home = ""
-        self._flow_client_path = ""
-        self._work_mode = 0
-        self._backend = 0
+    def __init__(self, runner, fate_home, work_mode=0, backend=0):
+        self._runner: Runner = runner
+        self._fate_home = fate_home
+        self._flow_client_path = os.path.join(self._fate_home, "fate_flow/fate_flow_client.py")
+        self._work_mode = work_mode
+        self._backend = backend
+        self._tmp_prefix = None
 
-    def set_fate_home(self, path):
-        self._fate_home = path
-        self._flow_client_path = os.path.join(path, "fate_flow/fate_flow_client.py")
-        return self
+    @property
+    def _env_path(self):
+        if os.path.isabs(self._runner.source):
+            return self._runner.source
+        return os.path.join(self._fate_home, self._runner.source)
+
+    def _mktemp(self, mode="w"):
+        return tempfile.NamedTemporaryFile(mode=mode, prefix=self._tmp_prefix)
 
     def set_work_mode(self, mode):
         self._work_mode = mode
@@ -43,20 +138,26 @@ class Submitter(object):
     def set_backend(self, backend):
         self._backend = backend
 
-    @staticmethod
-    def run_cmd(cmd):
-        subp = subprocess.Popen(cmd,
-                                shell=False,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
-        stdout, stderr = subp.communicate()
-        return stdout.decode("utf-8")
+    def submit(self, cmd, maybe_scp_files=None):
+        """
+        submit a job to fate_flow
+        :param cmd: fate flow cmd
+        :param maybe_scp_files: files should scp to remote host when remote runner is used
+        :return: stdout of fate_flow submit
+        """
+        _cmd = Cmd().cd(self._fate_home)
+        if self._runner.need_source():
+            _cmd.source(self._env_path)
+        _cmd.add_cmd(f"python {self._flow_client_path} {cmd}")
 
-    def submit(self, cmd):
-        full_cmd = ["python", self._flow_client_path]
-        full_cmd.extend(cmd)
-        stdout = self.run_cmd(full_cmd)
-        print(str(stdout))
+        if isinstance(self._runner, RemoteRunner) and maybe_scp_files:
+            for f_name in maybe_scp_files:
+                self._runner.scp(f_name)
+                _cmd.rm(f_name)
+
+        stdout = self._runner.run_cmd(_cmd)
+        logging.info(f"[Submit] {stdout}")
+
         try:
             stdout = json.loads(stdout)
             status = stdout["retcode"]
@@ -66,71 +167,29 @@ class Submitter(object):
             raise ValueError(f"[submit_job]fail, status:{status}, stdout:{stdout}")
         return stdout
 
-    def upload(self, data_path, namespace, name, partition=10, head=1, remote_host=None):
-        conf = dict(
-            file=data_path,
-            head=head,
-            partition=partition,
-            work_mode=self._work_mode,
-            table_name=name,
-            namespace=namespace
-        )
-        with tempfile.NamedTemporaryFile("w") as f:
-            json.dump(conf, f)
+    def query_job(self, job_id):
+        return self.submit(cmd=f"-f query_job -j {job_id} -r guest")  # todo: guest?
+
+    def upload(self, conf_dict):
+        with self._mktemp() as f:
+            json.dump(conf_dict, f)
             f.flush()
-            if remote_host:
-                scp_out = self.run_cmd(["scp", f.name, f"{remote_host}:{f.name}"])
-                env_path = os.path.join(self._fate_home, "../init_env.sh")
-                print(scp_out)
-                upload_cmd = " && ".join([f"source {env_path}"
-                                          f"python {self._flow_client_path} -f upload -c {f.name}",
-                                          f"rm {f.name}"])
-                upload_out = self.run_cmd(["ssh", remote_host, upload_cmd])
-                print(upload_out)
-            else:
-                self.submit(["-f", "upload", "-c", f.name])
+            return self.submit(f"-f upload -c {f.name}", maybe_scp_files=[f.name])
 
-    def delete_table(self, namespace, name):
-        pass
-
-    def run_upload(self, upload_path, remote_host=None):
-        data = open(upload_path)
-        res = json.loads(data.read())
-        with tempfile.NamedTemporaryFile("w") as f:
-            json.dump(res, f)
-            f.flush()
-            if remote_host:
-                scp_out = self.run_cmd(["scp", f.name, f"{remote_host}:{f.name}"])
-                env_path = os.path.join(self._fate_home, "../init_env.sh")
-                print(scp_out)
-                upload_cmd = " && ".join([f"source {env_path}"
-                                          f"python {self._flow_client_path} -f upload -c {f.name}",
-                                          f"rm {f.name}"])
-                upload_out = self.run_cmd(["ssh", remote_host, upload_cmd])
-                print(upload_out)
-            else:
-                self.submit(["-f", "upload", "-c", f.name])
-
-    def submit_job(self, conf_temperate_path, dsl_path, **substitutes):
-        conf = self.render(conf_temperate_path, **substitutes)
-        with tempfile.NamedTemporaryFile("w") as f:
-            json.dump(conf, f)
-            f.flush()
-            stdout = self.submit(["-f", "submit_job", "-c", f.name, "-d", dsl_path])
-        return stdout["jobId"]
-
-    def render(self, conf_temperate_path, **substitutes):
-        temp = open(conf_temperate_path).read()
-        substituted = Template(temp).substitute(**substitutes)
-        d = json.loads(substituted)
-        d['job_parameters']['work_mode'] = self._work_mode
-        return d
+    def submit_job(self, conf, dsl):
+        with self._mktemp() as f_conf:
+            with self._mktemp() as f_dsl:
+                json.dump(conf, f_conf)
+                json.dump(dsl, f_dsl)
+                f_conf.flush()
+                f_dsl.flush()
+                return self.submit(f"-f submit_job -c {f_conf.name} -d {f_dsl.name}")
 
     def await_finish(self, job_id, timeout=sys.maxsize, check_interval=10):
         deadline = time.time() + timeout
         while True:
             time.sleep(check_interval)
-            stdout = self.submit(["-f", "query_job", "-j", job_id, "-r", "guest"])
+            stdout = self.query_job(job_id)
             status = stdout["data"][0]["f_status"]
             if status == "running" and time.time() < deadline:
                 continue
