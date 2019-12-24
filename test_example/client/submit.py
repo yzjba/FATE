@@ -13,106 +13,21 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import abc
 import json
 import logging
 import os
-import subprocess
+import re
 import sys
 import tempfile
 import time
-import uuid
+from concurrent.futures import ProcessPoolExecutor
+from string import Template
+
+from test_example.client.cmd import Cmd
+from test_example.client.runner import Runner, RemoteRunner
 
 
-class Cmd(object):
-    def __init__(self):
-        self._cmd = []
-
-    def add_cmd(self, cmd):
-        self._cmd.append(cmd)
-        return self
-
-    def rm(self, path):
-        self.add_cmd(f"rm {path}")
-        return self
-
-    def source(self, path):
-        self.add_cmd(f"source {path}")
-        return self
-
-    def scp(self, l_path, host, r_path):
-        self.add_cmd(f"scp {l_path} {host}:{r_path}")
-        return self
-
-    def cd(self, path):
-        self.add_cmd(f"cd {path}")
-        return self
-
-    def build(self, sep=" && "):
-        return sep.join(self._cmd)
-
-
-class Runner(object):
-    def __init__(self):
-        self.source = None
-
-    def add_source(self, path):
-        self.source = path
-
-    def need_source(self):
-        return self.source is not None
-
-    @abc.abstractmethod
-    def run_cmd(self, cmd: 'Cmd'):
-        pass
-
-
-class LocalRunner(Runner):
-    def __init__(self):
-        super().__init__()
-
-    def run_cmd(self, cmd: 'Cmd'):
-        uid = uuid.uuid1()
-        cmd_str = cmd.build()
-        logging.info(f"[CMD({uid})]submit cmd={cmd}")
-        subp = subprocess.Popen([cmd_str],
-                                shell=False,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
-        stdout, stderr = subp.communicate()
-        logging.info(f"[CMD({uid})]stdout={stdout}, stderr={stderr}")
-        return stdout.decode("utf-8")
-
-
-class RemoteRunner(Runner):
-
-    def __init__(self, host):
-        super().__init__()
-        self._host = host
-
-    def run_cmd(self, cmd: 'Cmd'):
-        uid = uuid.uuid1()
-        cmd_str = f"ssh {self._host} {cmd.build()}"
-        logging.info(f"[CMD({uid})]submit cmd={cmd}")
-        subp = subprocess.Popen([cmd_str],
-                                shell=False,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
-        stdout, stderr = subp.communicate()
-        logging.info(f"[CMD({uid})]stdout={stdout}, stderr={stderr}")
-        return stdout.decode("utf-8")
-
-    def scp(self, f_name):
-        cmd = Cmd().scp(f_name, self._host, f_name)
-        self.run_cmd(cmd)
-
-
-#
-# class AsyncRunner(Runner):
-#     raise NotImplementedError()  # todo: async
-
-
-class Submitter(object):
+class BaseSubmitter(object):
 
     def __init__(self, runner, fate_home, work_mode=0, backend=0):
         self._runner: Runner = runner
@@ -176,22 +91,72 @@ class Submitter(object):
             f.flush()
             return self.submit(f"-f upload -c {f.name}", maybe_scp_files=[f.name])
 
+    def table_info(self, name, namespace):
+        return self.submit(f"-f table_info -t {name} -n {namespace}")
+
     def submit_job(self, conf, dsl):
         with self._mktemp() as f_conf:
             with self._mktemp() as f_dsl:
+                conf["job_parameters"] = {"work_mode": self._work_mode}
                 json.dump(conf, f_conf)
                 json.dump(dsl, f_dsl)
                 f_conf.flush()
                 f_dsl.flush()
                 return self.submit(f"-f submit_job -c {f_conf.name} -d {f_dsl.name}")
 
-    def await_finish(self, job_id, timeout=sys.maxsize, check_interval=10):
+    @staticmethod
+    def render_template(template_path, **substitute):
+        with open(template_path) as f:
+            t = Template(f.read())
+            return json.loads(t.substitute(**substitute))
+
+    @staticmethod
+    def regex_sub(raw_file_path, patten, repl):
+        with open(raw_file_path) as f:
+            s = f.read()
+            return json.loads(re.sub(patten, repl, s))
+
+    @staticmethod
+    def await_done(check_func, timeout=sys.maxsize, check_interval=10):
+        """
+        :raise raise `TimeoutError` if timeout
+        """
         deadline = time.time() + timeout
         while True:
             time.sleep(check_interval)
-            stdout = self.query_job(job_id)
-            status = stdout["data"][0]["f_status"]
-            if status == "running" and time.time() < deadline:
-                continue
-            else:
-                return status
+            info, is_done = check_func()
+            t = time.time()
+            if is_done:
+                return info
+            if t >= deadline:
+                raise TimeoutError()
+
+
+class Submitter(BaseSubmitter):
+    pool = ProcessPoolExecutor()
+
+    def await_job_done(self, job_id, timeout=sys.maxsize, check_interval=10):
+        def _check_func():
+            info = self.query_job(job_id)["data"][0]["f_status"]
+            is_done = info != "running"
+            return info, is_done
+
+        return self.await_done(_check_func, timeout, check_interval)
+
+
+class PoolSubmitter(BaseSubmitter):  # todo: use fixed size queue
+
+    def __init__(self, runner, fate_home, work_mode=0, backend=0, max_workers=1):
+        super().__init__(runner, fate_home, work_mode, backend)
+        self._pool = ProcessPoolExecutor(max_workers=max_workers)
+
+    def submit(self, cmd, maybe_scp_files=None):
+        self._pool.submit(super(PoolSubmitter, self).submit, cmd=cmd, maybe_scp_files=maybe_scp_files)
+
+    def await_job_done(self, job_id, timeout=sys.maxsize, check_interval=10):
+        def _check_func():
+            info = self.query_job(job_id).result()["data"][0]["f_status"]
+            is_done = info != "running"
+            return info, is_done
+
+        return self.await_done(_check_func, timeout, check_interval)
