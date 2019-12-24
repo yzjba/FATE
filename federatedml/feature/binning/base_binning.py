@@ -107,6 +107,10 @@ class Binning(object):
 
     def transform(self, data_instances, transform_type):
         # self._init_cols(data_instances)
+        for col_name in self.bin_inner_param.transform_bin_names:
+            if col_name not in self.header:
+                raise ValueError("Transform col_name: {} is not existed".format(col_name))
+
         if transform_type == 'bin_num':
             data_instances, _, _ = self.convert_feature_to_bin(data_instances)
         elif transform_type == 'woe':
@@ -158,6 +162,7 @@ class Binning(object):
     def convert_feature_to_woe(self, data_instances):
         is_sparse = data_overview.is_sparse_data(data_instances)
         schema = data_instances.schema
+
         if is_sparse:
             f = functools.partial(self._convert_sparse_data,
                                   bin_inner_param=self.bin_inner_param,
@@ -509,13 +514,6 @@ class Binning(object):
 
         """
         result_sum = {}
-        # for col_name in cols_dict:
-        #     result_col_sum = []
-        #     split_point = split_points.get(col_name)
-        #     for bin_index in range(len(split_point)):
-        #         result_col_sum.append([0, 0])
-        #     result_sum[col_name] = result_col_sum  # {'x1': [[0, 0], [0, 0] ... ],...}
-
         for _, datas in data_bin_with_table:
             bin_idx_dict = datas[0]
             y_combo = datas[1]
@@ -527,9 +525,6 @@ class Binning(object):
                 col_sum = result_sum[col_name]
                 while bin_idx >= len(col_sum):
                     col_sum.append([0, 0])
-                LOGGER.debug("in add_label_in_partition, col_sum: {}, bin_idx: {}".format(
-                    col_sum, bin_idx
-                ))
                 label_sum = col_sum[bin_idx]
                 label_sum[0] = label_sum[0] + y
                 label_sum[1] = label_sum[1] + inverse_y
