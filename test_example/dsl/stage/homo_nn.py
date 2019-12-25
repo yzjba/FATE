@@ -38,6 +38,34 @@ class HomoNN(Stage):
             max_iter=max_iter
         )
 
+    def set_batch_size(self, size, role=None):
+        self.__getattr__("set_batch_size")(size, role)
+        return self
+
+    def set_optimizer(self, optimizer, role=None):
+        self.__getattr__("set_optimizer")(optimizer, role)
+        return self
+
+    def set_loss(self, loss, role=None):
+        self.__getattr__("set_loss")(loss, role)
+        return self
+
+    def set_max_iter(self, max_iter, role=None):
+        self.__getattr__("set_max_iter")(max_iter, role)
+        return self
+
+    def set_metrics(self, metrics, role=None):
+        self.__getattr__("set_metrics")(metrics, role)
+        return self
+
+    def set_early_stop(self, early_stop, role=None):
+        self.__getattr__("set_early_stop")(early_stop, role)
+        return self
+
+    def set_config_type(self, config_type, role=None):
+        self.__getattr__("set_config_type")(config_type, role)
+        return self
+
     def add_layers(self, *layers):
         if "nn_define" not in self.global_param:
             self.global_param["nn_define"] = []
