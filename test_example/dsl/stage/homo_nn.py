@@ -29,24 +29,6 @@ class HomoNN(Stage):
                  max_iter=10):
         super().__init__(name=name, stage_name="HomoNN")
         self.global_param = dict(
-            nn_define=[
-                {
-                    "layer": "Dense",
-                    "units": 3,
-                    "use_bias": False,
-                    "activation": "relu"
-                },
-                {
-                    "layer": "Dense",
-                    "units": 2,
-                    "activation": "selu"
-                },
-                {
-                    "layer": "Dense",
-                    "units": 1,
-                    "activation": "sigmoid"
-                }
-            ],
             config_type=config_type,
             batch_size=batch_size,
             optimizer=dict(optimizer=optimizer, learning_rate=learning_rate),
@@ -54,4 +36,33 @@ class HomoNN(Stage):
             loss=loss,
             metrics=[metrics] if isinstance(metrics, str) else metrics,
             max_iter=max_iter
+        )
+
+    def add_layers(self, *layers):
+        if "nn_define" not in self.global_param:
+            self.global_param["nn_define"] = []
+        for layer in layers:
+            if isinstance(layer, Layer):
+                layer = layer.to_nn()
+            self.global_param["nn_define"].append(layer)
+        return self
+
+
+class Layer(object):
+    def to_nn(self):
+        raise NotImplemented()
+
+
+class Dense(Layer):
+    def __init__(self, units, use_bias=True, activation="sigmoid"):
+        self._units = units
+        self._use_bias = use_bias
+        self._activation = activation
+
+    def to_nn(self):
+        return dict(
+            layer="Dense",
+            units=self._units,
+            use_bias=self._use_bias,
+            activation=self._activation
         )

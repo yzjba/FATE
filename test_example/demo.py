@@ -14,11 +14,11 @@
 #  limitations under the License.
 #
 import os
-import time
 
 from test_example.client.runner import LocalRunner
 from test_example.client.submit import Submitter
 from test_example.dsl import Pipe, DataIO, HomoNN, Args
+from test_example.dsl.stage.homo_nn import Dense
 
 # create runner and submitter
 runner = LocalRunner()
@@ -36,8 +36,12 @@ args = Args() \
     .set_train_data([guest_data], role="guest") \
     .set_train_data([host_data], role="host")
 data_io = DataIO("DataIO_0")
-nn1 = HomoNN("HomoNN_0") \
-    .set_batch_size(10)
+nn1 = HomoNN("HomoNN_0").add_layers(
+    Dense(3, use_bias=False, activation="relu"),
+    Dense(2, activation="selu"),
+    Dense(1, activation="sigmoid")
+)
+# .set_batch_size(10)
 nn2 = HomoNN("HomoNN_1") \
     .set_batch_size([128, 256], role="host")
 
