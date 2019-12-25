@@ -85,11 +85,23 @@ class BaseSubmitter(object):
     def query_job(self, job_id):
         return self.submit(cmd=f"-f query_job -j {job_id} -r guest")  # todo: guest?
 
-    def upload(self, conf_dict):
+    def _upload(self, conf_dict):
         with self._mktemp() as f:
             json.dump(conf_dict, f)
             f.flush()
             return self.submit(f"-f upload -c {f.name}", maybe_scp_files=[f.name])
+
+    def upload(self, file, namespace, table_name, head=1, partition=10):
+        conf_dict = dict(
+            file=file,
+            namespace=namespace,
+            table_name=table_name,
+            head=head,
+            partition=partition,
+            work_mode=self._work_mode
+        )
+        self._upload(conf_dict)
+        return f"{namespace}.{table_name}"
 
     def table_info(self, name, namespace):
         return self.submit(f"-f table_info -t {name} -n {namespace}")
@@ -97,6 +109,7 @@ class BaseSubmitter(object):
     def submit_job(self, conf, dsl):
         with self._mktemp() as f_conf:
             with self._mktemp() as f_dsl:
+                print(json.dumps(conf, indent=2))
                 conf["job_parameters"] = {"work_mode": self._work_mode}
                 json.dump(conf, f_conf)
                 json.dump(dsl, f_dsl)
