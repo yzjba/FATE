@@ -25,7 +25,7 @@ class DataIO(Stage):
             output_format=output_format
         )
         if label_name is not None:
-            self.global_param["label_name"] = label_name = label_name,
+            self.global_param["label_name"] = label_name,
 
     def set_with_label(self, with_label=True, role=None):
         self.__getattr__("set_with_label")(with_label, role)
