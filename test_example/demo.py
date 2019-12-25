@@ -42,8 +42,7 @@ nn1 = HomoNN("HomoNN_0").add_layers(
     Dense(1, activation="sigmoid")
 )
 # .set_batch_size(10)
-nn2 = HomoNN("HomoNN_1") \
-    .set_batch_size([128, 256], role="host")
+nn2 = HomoNN("HomoNN_1")
 
 pipe = Pipe() \
     .set_local_party("guest", 10000) \
