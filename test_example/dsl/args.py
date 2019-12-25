@@ -24,7 +24,7 @@ class Args(HasOut, HasParam):
         HasParam.__init__(self, self.name)
         self.global_param = {"data": {}}
 
-    def set_param(self, name, value, role=None):
+    def _set_param(self, name, value, role=None):
         if role is None:
             raise ValueError("")
         else:
@@ -36,9 +36,9 @@ class Args(HasOut, HasParam):
             self._get_or_create_role_param(role)[name] = value
         return self
 
-    def setter_factory(self, name):
+    def _setter_factory(self, name):
         def _fn(value, role=None):
-            return self.set_param(name, value, role)
+            return self._set_param(name, value, role)
 
         return _fn
 
@@ -47,7 +47,7 @@ class Args(HasOut, HasParam):
         if isinstance(item, str) and item.startswith(prefix):
             name = item[len(prefix):]
             if self._is_param(name):
-                return self.setter_factory(name)
+                return self._setter_factory(name)
 
     def _is_param(self, name):
         return True
