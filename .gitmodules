@@ -2,7 +2,11 @@
 	path = fateboard
 	url = https://github.com/FederatedAI/FATE-Board.git
 	branch = v1.3.0
-[submodule "eggroll"]
-	path = eggroll
+[submodule "eggroll_old"]
+	path = eggroll_old
 	url = https://github.com/WeBankFinTech/eggroll.git
 	branch = v1.1.4
+[submodule "eggroll_new"]
+	path = eggroll_new
+	url = https://github.com/WeBankFinTech/eggroll.git
+	branch = v2.x
