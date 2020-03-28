@@ -29,7 +29,7 @@ source_code_dir=$(
 )
 echo "[INFO] Source code dir is ${source_code_dir}"
 packages_dir=${source_code_dir}/cluster-deploy/packages
-mkdir -p ${packages_dir}
+#mkdir -p ${packages_dir}
 
 eggroll_download() {
   cd ${source_code_dir}
