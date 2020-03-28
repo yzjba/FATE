@@ -55,7 +55,7 @@ init_env() {
 mkdir -p ${deploy_packages_dir}
 exit
 eeooff
-        scp ${cwd}/deploy/fate_base/env.sh ${user}@${node_ip}:${deploy_packages_dir}
+        scp ${cwd}/deploy/fate_base/install_os_env.sh ${user}@${node_ip}:${deploy_packages_dir}
         ssh -tt ${user}@${node_ip} << eeooff
 cd ${deploy_packages_dir}
 sh env.sh
