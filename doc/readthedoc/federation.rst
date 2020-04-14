@@ -1,0 +1,1 @@
+.. mdinclude:: ../api/federation_api.md

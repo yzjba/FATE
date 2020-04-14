@@ -1,0 +1,1 @@
+.. mdinclude:: ../../../standalone-deploy/README.md

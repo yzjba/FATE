@@ -63,7 +63,7 @@ class FederationRuntime(Federation):
         rtn = []
         for party, future in zip(rs_parties, futures):
             obj = future.result()
-            LOGGER.info(f'federation got data. name: {name}, tag: {tag}')
+            LOGGER.info(f'federation got data from party: {party}. name: {name}, tag: {tag}')
             if isinstance(obj, RollPair):
                 rtn.append(obj)
                 rubbish.add_table(obj)
@@ -93,6 +93,7 @@ class FederationRuntime(Federation):
         rs_parties = [(party.role, party.party_id) for party in parties]
 
         if isinstance(obj, RollPair):
+            LOGGER.debug(f'federation remote roll pair count: {obj.count()}, partition: {obj.get_partitions()}, for name: {name}, tag: {tag}')
             futures = rs.push(obj=obj, parties=rs_parties)
             rubbish.add_table(obj)
         else:

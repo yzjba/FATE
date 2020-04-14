@@ -21,7 +21,7 @@ from arch.api.base.build import Builder
 from arch.api.base.federation import Federation
 from arch.api.base.utils.wrap import FederationWrapped
 
-_EGGROLL_VERSION = 2
+_EGGROLL_VERSION = 1
 
 
 class WorkMode(IntEnum):
