@@ -24,6 +24,13 @@ FederatedML includes implementation of many common machine learning algorithms o
 Algorithm List
 --------------
 
++------------------------+------------+----------+
+| Algorithm              | module name| input    |
++========================+============+==========+
+| `DataIO`_              | DataIO     |  DTable, values are raw data|
++------------------------+------------+----------+
+| body row 2             | Cells may span        |
++------------------------+-----------------------+
 
 
 1. [`DataIO`_]
