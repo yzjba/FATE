@@ -31,7 +31,7 @@ Welcome to FATE's documentation!
    FederatedML <federatedml>
    Data Upload <upload>
    DSL & Conf <dsl_conf_setting>
-   Params API <api/federatedml.param>
+   Params <api/federatedml.param>
 
 
 .. toctree::
@@ -41,6 +41,8 @@ Welcome to FATE's documentation!
    Develop Guide <develop>
    Federation <federation>
    Session <session>
+
+
 
 
 

@@ -1,82 +1,74 @@
-federatedml.param package
-=========================
+Params
+======
 
-Subpackages
+Summary
 -----------
 
-.. toctree::
+.. autosummary::
+   :nosignatures:
 
-   federatedml.param.test
+   federatedml.param.dataio_param
+   federatedml.param.boosting_tree_param.BoostingTreeParam
 
-Submodules
-----------
 
-federatedml.param.base\_param module
-------------------------------------
+dataio
+------
 
-.. automodule:: federatedml.param.base_param
+.. autoclass:: federatedml.param.dataio_param.DataIOParam
    :members:
-   :undoc-members:
    :show-inheritance:
 
-federatedml.param.boosting\_tree\_param module
-----------------------------------------------
+
+boosting\_tree
+--------------
 
 .. automodule:: federatedml.param.boosting_tree_param
    :members:
    :undoc-members:
    :show-inheritance:
 
-federatedml.param.cross\_validation\_param module
--------------------------------------------------
+cross\_validation\_param
+------------------------
 
 .. automodule:: federatedml.param.cross_validation_param
    :members:
    :undoc-members:
    :show-inheritance:
 
-federatedml.param.dataio\_param module
---------------------------------------
-
-.. automodule:: federatedml.param.dataio_param
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-federatedml.param.encrypt\_param module
----------------------------------------
+encrypt\_param
+--------------
 
 .. automodule:: federatedml.param.encrypt_param
    :members:
    :undoc-members:
    :show-inheritance:
 
-federatedml.param.encrypted\_mode\_calculation\_param module
-------------------------------------------------------------
+encrypted\_mode\_calculation\_param
+-----------------------------------
 
 .. automodule:: federatedml.param.encrypted_mode_calculation_param
    :members:
    :undoc-members:
    :show-inheritance:
 
-federatedml.param.evaluation\_param module
-------------------------------------------
+evaluation\_param
+-----------------
 
 .. automodule:: federatedml.param.evaluation_param
    :members:
    :undoc-members:
    :show-inheritance:
 
-federatedml.param.feature\_binning\_param module
-------------------------------------------------
+feature\_binning\_param
+-----------------------
 
 .. automodule:: federatedml.param.feature_binning_param
    :members:
    :undoc-members:
    :show-inheritance:
 
-federatedml.param.feature\_selection\_param module
---------------------------------------------------
+feature\_selection\_param
+-------------------------
 
 .. automodule:: federatedml.param.feature_selection_param
    :members:

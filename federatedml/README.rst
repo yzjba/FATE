@@ -1,6 +1,7 @@
 
-English | [中文](./README_zh.md)
-# Federated Machine Learning
+Federated Machine Learning
+==========================
+:doc:`ENG <README_zh>`
 
 FederatedML includes implementation of many common machine learning algorithms on federated learning. All modules are developed in a decoupling modular approach to enhance scalability. Specifically, we provide:
 
@@ -14,14 +15,16 @@ FederatedML includes implementation of many common machine learning algorithms o
 
 5. Secure Protocol: Provides multiple security protocols for secure multi-party computing and interaction between participants.
 
- <div style="text-align:center", align=center>
-<img src="../doc/images/federatedml_structure.png" alt="federatedml structure"/><br/>
-Figure 1： Federated Machine Learning Framework
-</div>
+.. image:: ../doc/images/federatedml_structure.png
+   :width: 800
+   :alt: federatedml structure
 
-### Algorithm List
+Algorithm List
+--------------
 
-#### 1. [DataIO](./util/README.md)
+1. :doc:`[DataIO] <./util/README>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 This component is typically the first component of a modeling task. It will transform user-uploaded date into Instance object which can be used for the following components.
 
 - Corresponding module name: DataIO
@@ -88,7 +91,7 @@ Provide 5 types of filters. Each filters can select columns according to user co
 
 
 #### 8. [Union](./statistic/union/README.md)
-Combine multiple data tables into one. 
+Combine multiple data tables into one.
 
 - Corresponding module name: Union
 - Data Input: Input DTable(s).

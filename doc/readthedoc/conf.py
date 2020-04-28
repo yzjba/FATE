@@ -27,10 +27,15 @@ author = 'FederatedAI'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.autosummary',
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
-    'm2r'
+    'm2r',
+    'sphinx_autopackagesummary'
 ]
+
+
+autosummary_generate = True
 
 source_suffix = ['.rst', '.md']
 

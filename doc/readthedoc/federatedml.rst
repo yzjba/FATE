@@ -17,9 +17,12 @@ FederatedML includes implementation of many common machine learning algorithms o
    :width: 800
    :alt: federatedml structure
 
-### Algorithm List
+Algorithm List
+--------------
 
-#### 1. [DataIO](./util/README.md)
+DataIO
+^^^^^^
+
 This component is typically the first component of a modeling task. It will transform user-uploaded date into Instance object which can be used for the following components.
 
 - Corresponding module name: DataIO
@@ -27,4 +30,15 @@ This component is typically the first component of a modeling task. It will tran
 - Data Input: DTable, values are raw data.
 - Data Output: Transformed DTable, values are data instance define in federatedml/feature/instance.py
 
-.. mdinclude:: ../../federatedml/util/README.md
+Param
+~~~~~~
+
+.. autoclass:: federatedml.param.dataio_param.DataIOParam
+   :members:
+   :show-inheritance:
+
+Detail
+~~~~~~
+
+.. include:: dataio.rst
+   :start-after: .. include_after_this_label
