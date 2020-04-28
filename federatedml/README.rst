@@ -1,7 +1,7 @@
 
 Federated Machine Learning
 ==========================
-Check out this `中文`_.
+`中文`_
 
 .. _中文: README_zh.rst
 
@@ -26,8 +26,10 @@ Algorithm List
 
 
 
-1. :doc:`[DataIO] <./util/README>`
+1. [`DataIO`_]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. _DataIO: util/README.rst
 
 This component is typically the first component of a modeling task. It will transform user-uploaded date into Instance object which can be used for the following components.
 
