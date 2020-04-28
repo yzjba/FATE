@@ -27,7 +27,7 @@ Algorithm List
 +------------------------+------------+----------+
 | Algorithm              | module name| input    |
 +========================+============+==========+
-| `DataIO`_              | DataIO     |  DTable, values are raw data|
+| `DataIO`_              | DataIO     |  DTable  |
 +------------------------+------------+----------+
 | body row 2             | Cells may span        |
 +------------------------+-----------------------+
