@@ -1,0 +1,3 @@
+recursive-include federatedml/ *
+recursive-include arch/ *
+recursive-include fate_flow/ *
