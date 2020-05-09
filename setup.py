@@ -49,13 +49,15 @@ setup(
     author_email="contact@FedAI.org",
     maintainer="Sage Wei",
     maintainer_email="wbwmat@gmail.com",
-    packages=find_packages(".", include=["federatedml*", "arch*", "fate_flow*"]),
+    packages=find_packages(".", include=["federatedml*", "arch*", "fate_flow*", "examples*"]),
     include_package_data=True,
     install_requires=REQUIRED_PACKAGES,
     package_data={
         '': ["*"]
     },
-    scripts=['fate_flow/fate_flow_server.py', 'fate_flow/fate_flow_client.py'],
+    scripts=['fate_flow/fate_flow_server.py',
+             'fate_flow/fate_flow_client.py',
+             'examples/copy_examples.sh'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
