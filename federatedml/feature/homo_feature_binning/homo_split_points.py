@@ -21,6 +21,8 @@ import numpy as np
 from arch.api.utils import log_utils
 from federatedml.feature.binning.quantile_binning import QuantileBinning
 from federatedml.framework.homo.blocks import secure_mean_aggregator
+from federatedml.framework.homo.blocks.base import HomoTransferBase
+from federatedml.framework.homo.blocks.secure_mean_aggregator import SecureMeanAggregatorTransVar
 from federatedml.framework.weights import DictWeights
 from federatedml.param.feature_binning_param import FeatureBinningParam
 from federatedml.util import abnormal_detection
@@ -29,9 +31,16 @@ from federatedml.util import consts
 LOGGER = log_utils.getLogger()
 
 
+class HomoBinningTransVar(HomoTransferBase):
+    def __init__(self, server=(consts.ARBITER,), clients=(consts.GUEST, consts.HOST), prefix=None):
+        super().__init__(server=server, clients=clients, prefix=prefix)
+        self.secure_mean_aggregator = SecureMeanAggregatorTransVar(server=server, clients=clients, prefix=self.prefix)
+
+
 class HomoFeatureBinningServer(object):
-    def __init__(self):
-        self.split_points_aggregator = secure_mean_aggregator.Server(enable_secure_aggregate=True)
+    def __init__(self, transfer_var=HomoBinningTransVar()):
+        self.split_points_aggregator = secure_mean_aggregator.Server(trans_var=transfer_var.secure_mean_aggregator,
+                                                                     enable_secure_aggregate=True)
         self.suffix = tuple()
 
     def set_suffix(self, suffix):
@@ -43,8 +52,9 @@ class HomoFeatureBinningServer(object):
 
 
 class HomoFeatureBinningClient(object):
-    def __init__(self, bin_method=consts.QUANTILE):
-        self.split_points_aggregator = secure_mean_aggregator.Client(enable_secure_aggregate=True)
+    def __init__(self, bin_method=consts.QUANTILE, transfer_var=HomoBinningTransVar()):
+        self.split_points_aggregator = secure_mean_aggregator.Client(trans_var=transfer_var.secure_mean_aggregator,
+                                                                     enable_secure_aggregate=True)
         self.suffix = tuple()
         self.bin_method = bin_method
         self.bin_obj = None
