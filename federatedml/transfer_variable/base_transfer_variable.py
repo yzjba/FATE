@@ -18,6 +18,8 @@ import typing
 from functools import wraps
 from typing import Union
 
+from prettytable import PrettyTable
+
 from arch.api import RuntimeInstance
 from arch.api.base.utils.clean import Cleaner
 from arch.api.base.utils.party import Party
@@ -31,47 +33,45 @@ class _Row(object):
         self.count = count
         self.total_time = total_time
 
+    def add(self, elapse):
+        self.count += 1
+        self.total_time += elapse
+
 
 class _Statistic(object):
-    __statistic: typing.MutableMapping[str, _Row] = {}
+    __statistic = {}
 
     @classmethod
-    def add(cls, name, elapse):
-        if name not in cls.__statistic:
-            cls.__statistic[name] = _Row(1, elapse)
-        else:
-            cls.__statistic[name].count += 1
-            cls.__statistic[name].total_time += 1
+    def add(cls, name, transfer_type, elapse):
+        if (name, transfer_type) not in cls.__statistic:
+            cls.__statistic[(name, transfer_type)] = _Row(0, 0.0)
+        cls.__statistic[(name, transfer_type)].add(elapse)
 
     @classmethod
     def show(cls):
-        try:
-            from prettytable import PrettyTable
-            t = PrettyTable()
-            t.field_names = ["name", "count", "total_time", "avg_time"]
-            for name, row in cls.__statistic.items():
-                t.add_row([name, row.count, row.total_time, row.total_time / row.count])
-            return t.__str__()
-        except ImportError:
-            s = ["name", "count", "total_time", "avg_time"]
-            for name, row in cls.__statistic.items():
-                s.append([name, row.count, row.total_time, row.total_time / row.count])
-            return "\n".join([",".join(map(str, row)) for row in s])
+        t = PrettyTable()
+        t.field_names = ["name", "type", "count", "total_time", "avg_time"]
+        for (name, transfer_type), row in cls.__statistic.items():
+            t.add_row([name, transfer_type, row.count, row.total_time, row.total_time / row.count])
+        return t.__str__()
 
     @classmethod
     def clear(cls):
         cls.__statistic.clear()
 
 
-def _timeit(func):
-    @wraps(func)
-    def _wrap(self, *args, **kwargs):
-        start = time.time()
-        ret = func(self, *args, **kwargs)
-        _Statistic.add(self.name, time.time() - start)
-        return ret
+def _timeit(transfer_type):
+    def _wrapper(func):
+        @wraps(func)
+        def _inner_wrap(self, *args, **kwargs):
+            start = time.time()
+            ret = func(self, *args, **kwargs)
+            _Statistic.add(self.name, transfer_type, time.time() - start)
+            return ret
 
-    return _wrap
+        return _inner_wrap
+
+    return _wrapper
 
 
 class TransferNameSpace(object):
@@ -153,7 +153,7 @@ class Variable(object):
     def authorized_src_roles(self):
         return RuntimeInstance.FEDERATION.authorized_src_roles(self.name)
 
-    @_timeit
+    @_timeit("remote")
     def remote_parties(self, obj, parties: Union[list, Party], suffix=tuple()):
         if not isinstance(suffix, tuple):
             suffix = (suffix,)
@@ -167,7 +167,7 @@ class Variable(object):
         if self._auto_clean:
             self._remote_cleaner.keep_latest_n(self._preserve_num)
 
-    @_timeit
+    @_timeit("get")
     def get_parties(self, parties: Union[list, Party], suffix=tuple()):
         if not isinstance(suffix, tuple):
             suffix = (suffix,)
