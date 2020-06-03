@@ -13,16 +13,65 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import time
 import typing
+from functools import wraps
 from typing import Union
 
 from arch.api import RuntimeInstance
 from arch.api.base.utils.clean import Cleaner
 from arch.api.base.utils.party import Party
 from arch.api.utils import log_utils
-from functools import wraps
 
 LOGGER = log_utils.getLogger()
+
+
+class _Row(object):
+    def __init__(self, count, total_time):
+        self.count = count
+        self.total_time = total_time
+
+
+class _Statistic(object):
+    __statistic: typing.MutableMapping[str, _Row] = {}
+
+    @classmethod
+    def add(cls, name, elapse):
+        if name not in cls.__statistic:
+            cls.__statistic[name] = _Row(1, elapse)
+        else:
+            cls.__statistic[name].count += 1
+            cls.__statistic[name].total_time += 1
+
+    @classmethod
+    def show(cls):
+        try:
+            from prettytable import PrettyTable
+            t = PrettyTable()
+            t.field_names = ["name", "count", "total_time", "avg_time"]
+            for name, row in cls.__statistic.items():
+                t.add_row([name, row.count, row.total_time, row.total_time / row.count])
+            return t.__str__()
+        except ImportError:
+            s = ["name", "count", "total_time", "avg_time"]
+            for name, row in cls.__statistic.items():
+                s.append([name, row.count, row.total_time, row.total_time / row.count])
+            return "\n".join([",".join(map(str, row)) for row in s])
+
+    @classmethod
+    def clear(cls):
+        cls.__statistic.clear()
+
+
+def _timeit(func):
+    @wraps(func)
+    def _wrap(self, *args, **kwargs):
+        start = time.time()
+        ret = func(self, *args, **kwargs)
+        _Statistic.add(self.name, time.time() - start)
+        return ret
+
+    return _wrap
 
 
 class TransferNameSpace(object):
@@ -104,6 +153,7 @@ class Variable(object):
     def authorized_src_roles(self):
         return RuntimeInstance.FEDERATION.authorized_src_roles(self.name)
 
+    @_timeit
     def remote_parties(self, obj, parties: Union[list, Party], suffix=tuple()):
         if not isinstance(suffix, tuple):
             suffix = (suffix,)
@@ -117,6 +167,7 @@ class Variable(object):
         if self._auto_clean:
             self._remote_cleaner.keep_latest_n(self._preserve_num)
 
+    @_timeit
     def get_parties(self, parties: Union[list, Party], suffix=tuple()):
         if not isinstance(suffix, tuple):
             suffix = (suffix,)
@@ -212,3 +263,7 @@ class BaseTransferVariables(object):
     @staticmethod
     def roles_to_parties(roles: list) -> list:
         return RuntimeInstance.FEDERATION.roles_to_parties(roles)
+
+    @classmethod
+    def log_statistic(cls):
+        LOGGER.info(f"transfer statistic:\n{_Statistic.show()}")
