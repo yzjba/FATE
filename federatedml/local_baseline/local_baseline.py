@@ -71,9 +71,7 @@ class LocalBaseline(ModelBase):
         is_converged = n_iter < model.max_iter
 
         coef = model.coef_[0]
-        LOGGER.debug(f"model coef len {coef.shape[0]}, value: {coef}")
         weight_dict = dict(zip(self.header, list(coef)))
-        LOGGER.debug(f"model weight dict {weight_dict}")
         # intercept is in array format if fit_intercept
         intercept = model.intercept_[0] if model.fit_intercept else model.intercept_
 
@@ -122,7 +120,6 @@ class LocalBaseline(ModelBase):
 
     def _get_param(self):
         header = self.header
-        LOGGER.debug("In get_param, header: {}".format(header))
         if header is None:
             param_protobuf_obj = lr_model_param_pb2.LRModelParam()
             return param_protobuf_obj
@@ -134,7 +131,6 @@ class LocalBaseline(ModelBase):
             result = self._get_model_param()
             param_protobuf_obj = lr_model_param_pb2.LRModelParam(**result)
 
-        LOGGER.debug("in _get_param, result: {}".format(result))
 
         return param_protobuf_obj
 
