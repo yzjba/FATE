@@ -76,7 +76,7 @@ class BaseLinearRegression(BaseLinearModel):
 
     def _get_param(self):
         header = self.header
-        LOGGER.debug("In get_param, header: {}".format(header))
+        # LOGGER.debug("In get_param, header: {}".format(header))
         if header is None:
             param_protobuf_obj = linr_model_param_pb2.LinRModelParam()
             return param_protobuf_obj

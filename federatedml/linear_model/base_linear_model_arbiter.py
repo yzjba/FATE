@@ -125,7 +125,6 @@ class HeteroBaseArbiter(BaseLinearModel):
                 self.loss_history.append(iter_loss)
 
             if self.model_param.early_stop == 'weight_diff':
-                LOGGER.debug("total_gradient: {}".format(total_gradient))
                 weight_diff = fate_operator.norm(total_gradient)
                 LOGGER.info("iter: {}, weight_diff:{}, is_converged: {}".format(self.n_iter_,
                                                                                 weight_diff, self.is_converged))
