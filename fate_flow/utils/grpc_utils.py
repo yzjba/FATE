@@ -46,7 +46,7 @@ def wrap_grpc_packet(_json_body, _method, _url, _src_party_id, _dst_party_id, jo
     return proxy_pb2.Packet(header=_meta, body=_data)
 
 
-def forward_grpc_packet(_json_body, _method, _url, _src_party_id, _dst_party_id, role, ip, grpc_port, job_id=None,
+def forward_grpc_packet(_json_body, _method, _url, _src_party_id, _dst_party_id, role, job_id=None,
                         overall_timeout=DEFAULT_GRPC_OVERALL_TIMEOUT):
     _src_end_point = basic_meta_pb2.Endpoint(ip=IP, port=GRPC_PORT)
     _src = proxy_pb2.Topic(name=job_id, partyId="{}".format(_src_party_id), role=ROLE, callback=_src_end_point)

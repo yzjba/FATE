@@ -126,10 +126,10 @@ def get_node_identity(json_body, src_party_id):
         raise Exception('get appkey and secret failed: {}'.format(str(e)))
 
 
-def forward_api(job_id, method, endpoint, src_party_id, dest_party_id, json_body, role, ip, grpc_port,
+def forward_api(job_id, method, endpoint, src_party_id, dest_party_id, json_body, role,
                 overall_timeout=DEFAULT_GRPC_OVERALL_TIMEOUT):
-    _packet = forward_grpc_packet(json_body, method, endpoint, src_party_id, dest_party_id, job_id=job_id, role=role, ip=ip,
-                                  grpc_port=grpc_port, overall_timeout=overall_timeout)
+    _packet = forward_grpc_packet(json_body, method, endpoint, src_party_id, dest_party_id, job_id=job_id, role=role,
+                                  overall_timeout=overall_timeout)
 
     channel, stub = get_proxy_data_channel()
     _return = stub.unaryCall(_packet)

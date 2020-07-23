@@ -13,7 +13,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import uuid
+
 from flask import Flask, request
+from flask.json import jsonify
 
 from fate_flow.settings import stat_logger
 from fate_flow.utils.api_utils import get_json_result, forward_api
@@ -30,17 +33,12 @@ def internal_server_error(e):
 @manager.route('/<role>', methods=['POST'])
 def start_forward(role):
     request_config = request.json or request.form.to_dict()
-    forward_api(job_id=request_config.get('body').get('job_id', None),
-                method= request_config.get('header').get('method', 'POST'),
-                endpoint=request_config.get('header').get('endpoint'),
-                src_party_id=request_config.get('header').get('src_party_id'),
-                dest_party_id=request_config.get('header').get('dest_party_id'),
-                role=role,
-                ip=request_config.get('header').get('id'),
-                grpc_port=request_config.get('header').get('grpc_port'),
-                json_body=request_config.get('body')
-                )
-
-
-
-
+    response = forward_api(job_id=request_config.get('header').get('job_id', uuid.uuid1().hex),
+                           method=request_config.get('header').get('method', 'POST'),
+                           endpoint=request_config.get('header').get('endpoint'),
+                           src_party_id=request_config.get('header').get('src_party_id'),
+                           dest_party_id=request_config.get('header').get('dest_party_id'),
+                           role=role,
+                           json_body=request_config.get('body')
+                           )
+    return jsonify(response)
