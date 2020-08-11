@@ -1,15 +1,28 @@
 FATE Stand-alone Deployment Guide
 =================================
 
+Server Configuration:
+
++------------------------+-------------------------------------+
+| Quantity               | 1                                   |
++------------------------+-------------------------------------+
+| Configuration          | 8 core,16G memory, 500G hard disk   |
++------------------------+-------------------------------------+
+| Operating System       | CentOS Linux release 7.2            |
++------------------------+-------------------------------------+
+| Users                  | User: app owner:apps                |
++------------------------+-------------------------------------+
+
+
+
 The stand-alone version provides 2 deployment methods, which can be
 selected according to your actual situation:
 
--  Install FATE using Docker `Chinese
-   guide <./doc/Fate-standalone_deployment_guide_zh.md>`__
-   *(Recommended)*
+-  Install FATE using Docker  *(Recommended)*
 
--  Install FATE in Host `Chinese
-   guide <./doc/Fate-standalone_deployment_guide_zh.md>`__
+-  Install FATE in Host
+
+You can also refer to `Chinese  guide <./doc/Fate-standalone_deployment_guide_zh.md>`__
 
 1) Install FATE using Docker\ *(Recommended)*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
