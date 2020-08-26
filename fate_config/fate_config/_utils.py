@@ -38,7 +38,7 @@ def get_auth_config_path():
 
 def load_config(name):
     with get_config_path(name).open() as f:
-        return yaml.safe_load(f)
+        return yaml.load(f, Loader=yaml.RoundTripLoader)
 
 
 def load_auth_config():
@@ -46,8 +46,8 @@ def load_auth_config():
 
 
 def dump_config(name, config):
-    with get_config_path(name).open("r") as f:
-        return yaml.safe_dump(config, f)
+    with get_config_path(name).open("w") as f:
+        return yaml.dump(config, f, Dumper=yaml.RoundTripDumper)
 
 
 def copy_config(path, name):

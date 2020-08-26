@@ -13,14 +13,28 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+from pathlib import Path
 
 import click
 from fate_config._utils import get_config_path, backup, recover
+from fate_config._service_config import load_service_config, dump_service_config
 
 
 @click.group(name="config")
 def config():
     pass
+
+
+@config.command(name="init_project_base")
+@click.argument("path", type=click.Path(file_okay=False))
+def _init_project_base(path):
+    path = Path(path).resolve()
+    path.mkdir(exist_ok=True)
+
+    conf = load_service_config()
+    conf["project_base_dir"] = f"{path}"
+    print(f"set project_base_dir to {path}")
+    dump_service_config(conf)
 
 
 @config.command(name="edit")
