@@ -1,2 +1,2 @@
 paths: # dir or path
-  - "../federatedml/transfer_variable/auth_conf"
+  - "../../federatedml/transfer_variable/auth_conf"

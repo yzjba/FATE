@@ -1,19 +1,25 @@
 [tool.poetry]
 name = "fate_config"
-version = "0.1.0"
+version = "1.5.0"
 description = ""
 authors = ["FederatedAI <contact@FedAI.org>"]
 license = "Apache-2.0"
 
+packages = [
+    { include = "fate_config"}
+]
+
 [tool.poetry.dependencies]
 python = "^3.6"
 click = "^7.1.2"
+"ruamel.yaml" = "^0.16.10"
 
 [tool.poetry.dev-dependencies]
 
 
 [tool.poetry.scripts]
 fate_config = "fate_config.script:config"
+
 
 [build-system]
 requires = ["poetry>=0.12"]

@@ -17,13 +17,10 @@
 import itertools
 import json
 import typing
-from pathlib import Path
 
-import yaml
+from fate_config import get_auth_config_path, load_auth_config
 
 _transfer_auth: typing.Optional[typing.MutableMapping] = None
-
-_TRANSFER_CONF_PATH = "../../../conf/transfer_conf.yaml"
 
 
 def _get_transfer_conf():
@@ -32,13 +29,8 @@ def _get_transfer_conf():
         return _transfer_auth
 
     _transfer_auth = {}
-    path = Path(__file__).parent.joinpath(_TRANSFER_CONF_PATH).resolve()
-    if not path.is_file():
-        raise NameError(f"transfer variable path conf: {path} not found")
-
-    with open(path) as f:
-        conf = yaml.load(f)
-
+    path = get_auth_config_path()
+    conf = load_auth_config()
     transfer_conf_files = []
     for base_dir in conf.get('paths', []):
         full_path = path.parent.joinpath(base_dir)

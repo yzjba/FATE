@@ -32,17 +32,17 @@ def _edit():
 
 
 @config.command(name="backup")
-@click.option("--dst", type=click.Path(),
+@click.option("--dst", type=click.Path(), required=True,
               help="directory to backup configs to")
 def _backup(dst):
     """
     backup configs
     """
-    backup(dst, names=["base_conf.yaml"])
+    backup(dst, names=["service_conf.yaml"])
 
 
 @config.command(name="recover")
-@click.option("--src", type=click.Path(),
+@click.option("--src", type=click.Path(), required=True,
               help="directory to recover configs from")
 def _recover(src):
     """

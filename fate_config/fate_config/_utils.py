@@ -32,9 +32,17 @@ def get_fate_env_path():
     return get_config_path("fate.env")
 
 
+def get_auth_config_path():
+    return get_config_path("transfer_conf.yaml")
+
+
 def load_config(name):
     with get_config_path(name).open() as f:
         return yaml.safe_load(f)
+
+
+def load_auth_config():
+    return load_config("transfer_conf.yaml")
 
 
 def dump_config(name, config):

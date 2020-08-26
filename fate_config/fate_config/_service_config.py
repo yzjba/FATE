@@ -23,14 +23,15 @@ def get_project_base_dir():
         project_base_dir = os.environ.get("PROJECT_BASE_DIR", None)
     if not project_base_dir:
         raise Exception(f"project_base_dir not set")
+    return project_base_dir
 
 
 def load_service_config():
-    load_config("service_conf.yaml")
+    return load_config("service_conf.yaml")
 
 
 def dump_service_config(config):
-    dump_config("service_conf.yaml", config)
+    return dump_config("service_conf.yaml", config)
 
 
 def get_logs_base_dir():
