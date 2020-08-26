@@ -24,9 +24,10 @@ import time
 import re
 
 import requests
+from fate_config import get_project_base_dir
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
-from fate_arch.common import file_utils, conf_utils
+from fate_arch.common import conf_utils
 from fate_flow.settings import FATEFLOW_SERVICE_NAME, API_VERSION
 from fate_flow.utils import detect_utils
 
@@ -154,7 +155,7 @@ def call_fun(func, config_data, dsl_path, config_path):
         if func == 'upload' and config_data.get('use_local_data', 1) != 0:
             file_name = config_data.get('file')
             if not os.path.isabs(file_name):
-                file_name = os.path.join(file_utils.get_project_base_directory(), file_name)
+                file_name = os.path.join(get_project_base_dir(), file_name)
             if os.path.exists(file_name):
                 with open(file_name, 'rb') as fp:
                     data = MultipartEncoder(
@@ -195,7 +196,7 @@ def call_fun(func, config_data, dsl_path, config_path):
         if func == "import":
             file_path = config_data["file"]
             if not os.path.isabs(file_path):
-                file_path = os.path.join(file_utils.get_project_base_directory(), file_path)
+                file_path = os.path.join(get_project_base_dir(), file_path)
             if os.path.exists(file_path):
                 files = {'file': open(file_path, 'rb')}
             else:

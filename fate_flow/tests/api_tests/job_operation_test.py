@@ -1,11 +1,10 @@
 import json
-import os
+import pathlib
 import time
 import unittest
 from contextlib import closing
 
 import requests
-from fate_arch.common import file_utils
 
 from fate_flow.settings import HTTP_PORT, API_VERSION, WORK_MODE
 
@@ -18,9 +17,10 @@ class TestJobOperation(unittest.TestCase):
 
     def test_job_operation(self):
         # submit
-        with open(os.path.join(file_utils.get_project_base_directory(), self.dsl_path), 'r') as f:
+        import fate_flow
+        with pathlib.Path(fate_flow.__file__).resolve().parent.parent.joinpath(self.dsl_path).open("r") as f:
             dsl_data = json.load(f)
-        with open(os.path.join(file_utils.get_project_base_directory(), self.config_path), 'r') as f:
+        with pathlib.Path(fate_flow.__file__).resolve().parent.parent.joinpath(self.config_path).open("r") as f:
             config_data = json.load(f)
             config_data['job_parameters']['work_mode'] = WORK_MODE
         response = requests.post("/".join([self.server_url, 'job', 'submit']),

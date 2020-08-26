@@ -17,7 +17,9 @@ import os
 import shutil
 import time
 
-from fate_arch.common import log, file_utils
+from fate_config import get_project_base_dir
+
+from fate_arch.common import log
 from fate_arch.storage import StorageEngine, EggRollStorageType
 from fate_flow.entity.metric import Metric, MetricMeta
 from fate_flow.utils import job_utils
@@ -43,7 +45,7 @@ class Upload(object):
         self.parameters["local"] = component_parameters["local"]
         job_id = self.taskid.split("_")[0]
         if not os.path.isabs(self.parameters.get("file", "")):
-            self.parameters["file"] = os.path.join(file_utils.get_project_base_directory(), self.parameters["file"])
+            self.parameters["file"] = os.path.join(get_project_base_dir(), self.parameters["file"])
         if not os.path.exists(self.parameters["file"]):
             raise Exception("%s is not exist, please check the configure" % (self.parameters["file"]))
         if not os.path.getsize(self.parameters["file"]):

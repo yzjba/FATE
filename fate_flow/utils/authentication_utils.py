@@ -16,11 +16,11 @@
 import functools
 import json
 import os
+import pathlib
 import re
 
 from flask import request
 
-from fate_arch.common import file_utils
 from fate_flow.settings import USE_AUTHENTICATION, PRIVILEGE_COMMAND_WHITELIST, stat_logger
 
 
@@ -164,7 +164,8 @@ class PrivilegeAuth(object):
         if USE_AUTHENTICATION:
             # init local storage
             stat_logger.info('init local authorization library')
-            file_dir = os.path.join(file_utils.get_project_base_directory(), 'fate_flow')
+            import fate_flow
+            file_dir = os.path.abspath(pathlib.Path(fate_flow.__file__).resolve().parent)
             os.makedirs(file_dir, exist_ok=True)
             PrivilegeAuth.local_storage_file = os.path.join(file_dir, 'authorization_config.json')
             if not os.path.exists(PrivilegeAuth.local_storage_file):
@@ -175,10 +176,12 @@ class PrivilegeAuth(object):
             PrivilegeAuth.command_whitelist = PRIVILEGE_COMMAND_WHITELIST
 
             # init ALL_PERMISSION
-            component_path = os.path.join(file_utils.get_project_base_directory(),
-                                          'federatedml', 'conf', 'setting_conf')
-            command_file_path = os.path.join(file_utils.get_project_base_directory(),
-                                             'fate_flow', 'apps', 'party_app.py')
+            import federatedml
+            component_path = os.path.abspath(
+                pathlib.Path(federatedml.__file__).resolve().parent.joinpath('conf', 'setting_conf'))
+            import fate_flow
+            command_file_path = os.path.abspath(
+                pathlib.Path(fate_flow.__file__).resolve().parent.joinpath('apps', 'party_app.py'))
             stat_logger.info('search commands from {}'.format(command_file_path))
             search_command(command_file_path)
             stat_logger.info('search components from {}'.format(component_path))

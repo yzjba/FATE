@@ -13,7 +13,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import warnings
-from fate_arch.common.file_utils import *
 
-warnings.warn('arch.api.file_utils argument deprecated, use fate_arch.common.file_utils instead', DeprecationWarning)
+import json
+
+
+def load_json(conf_path):
+    try:
+        with open(conf_path) as f:
+            return json.load(f)
+    except Exception as e:
+        raise EnvironmentError("loading json file config from '{}' failed!".format(conf_path)) from e

@@ -13,20 +13,21 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import os
 import base64
+import os
 import shutil
 from datetime import datetime
 
-from federatedml.protobuf.generated import pipeline_pb2
-from fate_flow.manager.model_manager import pipelined_model
+from fate_config import get_model_local_cache_base_dir
+
 from fate_arch.common.base_utils import json_loads, json_dumps
-from fate_arch.common.file_utils import get_project_base_directory
+from fate_flow.manager.model_manager import pipelined_model
 from fate_flow.utils import model_utils
+from federatedml.protobuf.generated import pipeline_pb2
 
 
 def gen_model_file_path(model_id, model_version):
-    return os.path.join(get_project_base_directory(), "model_local_cache", model_id, model_version)
+    return os.path.join(get_model_local_cache_base_dir(),  model_id, model_version)
 
 
 def compare_roles(request_conf_roles: dict, run_time_conf_roles: dict):

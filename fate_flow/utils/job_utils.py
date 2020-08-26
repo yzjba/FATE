@@ -14,9 +14,7 @@
 #  limitations under the License.
 #
 import datetime
-import functools
 import errno
-import operator
 import os
 import subprocess
 import sys
@@ -25,10 +23,12 @@ import typing
 import uuid
 
 import psutil
+from fate_config import get_logs_base_dir, get_jobs_base_dir
+
 from fate_flow.entity.types import JobStatus
 
-from fate_arch.common import file_utils
-from fate_arch.common.base_utils import json_loads, json_dumps, fate_uuid, current_timestamp
+from fate_arch.common import json_utils
+from fate_arch.common.base_utils import json_loads, json_dumps, fate_uuid
 from fate_arch.common.log import schedule_logger
 from fate_flow.db.db_models import DB, Job, Task
 from fate_flow.entity.runtime_config import RuntimeConfig
@@ -86,11 +86,11 @@ def generate_task_input_data_namespace(task_id, task_version, role, party_id):
 
 
 def get_job_directory(job_id):
-    return os.path.join(file_utils.get_project_base_directory(), 'jobs', job_id)
+    return os.path.join(get_jobs_base_dir(), 'jobs', job_id)
 
 
 def get_job_log_directory(job_id):
-    return os.path.join(file_utils.get_project_base_directory(), 'logs', job_id)
+    return os.path.join(get_logs_base_dir(), job_id)
 
 
 def check_config(config: typing.Dict, required_parameters: typing.List):
@@ -164,7 +164,7 @@ def get_job_conf_path(job_id):
 def get_job_conf(job_id):
     conf_dict = {}
     for key, path in get_job_conf_path(job_id).items():
-        config = file_utils.load_json_conf(path)
+        config = json_utils.load_json(path)
         conf_dict[key] = config
     return conf_dict
 

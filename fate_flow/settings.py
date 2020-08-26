@@ -14,9 +14,13 @@
 #  limitations under the License.
 #
 # -*- coding: utf-8 -*-
-import os
 
-from fate_arch.common import file_utils, log
+import os
+import pathlib
+
+from fate_config import get_logs_base_dir
+
+from fate_arch.common import log
 from fate_flow.entity.runtime_config import RuntimeConfig
 from fate_arch.common.conf_utils import get_base_config
 import __main__
@@ -62,7 +66,7 @@ API_VERSION = "v1"
 FATEFLOW_SERVICE_NAME = 'fateflow'
 MAIN_MODULE = os.path.relpath(__main__.__file__)
 SERVER_MODULE = 'fate_flow_server.py'
-TEMP_DIRECTORY = os.path.join(file_utils.get_project_base_directory(), "fate_flow", "temp")
+TEMP_DIRECTORY = os.path.abspath(pathlib.Path(__file__).parent.parent.joinpath("temp"))
 HEADERS = {
     'Content-Type': 'application/json',
     'Connection': 'close'
@@ -77,7 +81,7 @@ FATE_BOARD_DASHBOARD_ENDPOINT = '/index.html#/dashboard?job_id={}&role={}&party_
 # logger
 log.LoggerFactory.LEVEL = 10
 # {CRITICAL: 50, FATAL:50, ERROR:40, WARNING:30, WARN:30, INFO:20, DEBUG:10, NOTSET:0}
-log.LoggerFactory.set_directory(os.path.join(file_utils.get_project_base_directory(), 'logs', 'fate_flow'))
+log.LoggerFactory.set_directory(os.path.join(get_logs_base_dir(), 'fate_flow'))
 stat_logger = log.getLogger("fate_flow_stat")
 detect_logger = log.getLogger("fate_flow_detect")
 access_logger = log.getLogger("fate_flow_access")

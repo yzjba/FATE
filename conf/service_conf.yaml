@@ -1,3 +1,4 @@
+project_base_dir:  # required, logs/jobs/local_mode_cache will be placed here
 work_mode: 1
 use_local_database: true
 use_registry: false

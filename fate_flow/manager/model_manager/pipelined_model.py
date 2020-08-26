@@ -13,14 +13,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import base64
 import importlib
 import inspect
 import os
+import pathlib
 import shutil
-import base64
+
+from fate_config import get_model_local_cache_base_dir
 from ruamel import yaml
 
-from fate_arch.common import file_utils
 from fate_arch.protobuf.python import default_empty_fill_pb2
 from fate_flow.settings import stat_logger, TEMP_DIRECTORY
 
@@ -35,7 +37,7 @@ class PipelinedModel(object):
         """
         self.model_id = model_id
         self.model_version = model_version
-        self.model_path = os.path.join(file_utils.get_project_base_directory(), "model_local_cache", model_id, model_version)
+        self.model_path = os.path.join(get_model_local_cache_base_dir(), model_id, model_version)
         self.define_proto_path = os.path.join(self.model_path, "define", "proto")
         self.define_meta_path = os.path.join(self.model_path, "define", "define_meta.yaml")
         self.variables_index_path = os.path.join(self.model_path, "variables", "index")
@@ -51,7 +53,8 @@ class PipelinedModel(object):
             os.makedirs(self.model_path, exist_ok=False)
         for path in [self.variables_index_path, self.variables_data_path]:
             os.makedirs(path, exist_ok=False)
-        shutil.copytree(os.path.join(file_utils.get_project_base_directory(), "federatedml", "protobuf", "proto"), self.define_proto_path)
+        import federatedml
+        shutil.copytree(pathlib.Path(federatedml.__file__).resolve().parent.joinpath("protobuf", "proto"), self.define_proto_path)
         with open(self.define_meta_path, "w", encoding="utf-8") as fw:
             yaml.dump({"describe": "This is the model definition meta"}, fw, Dumper=yaml.RoundTripDumper)
 
@@ -108,8 +111,7 @@ class PipelinedModel(object):
         return model_buffers
 
     def set_model_path(self):
-        self.model_path = os.path.join(file_utils.get_project_base_directory(), "model_local_cache",
-                                       self.model_id, self.model_version)
+        self.model_path = os.path.join(get_model_local_cache_base_dir(), self.model_id, self.model_version)
 
     def exists(self):
         return os.path.exists(self.model_path)
@@ -196,7 +198,8 @@ class PipelinedModel(object):
 
     @classmethod
     def get_proto_buffer_class(cls, buffer_name):
-        package_path = os.path.join(file_utils.get_project_base_directory(), 'federatedml', 'protobuf', 'generated')
+        import federatedml
+        package_path = os.path.realpath(pathlib.Path(federatedml.__file__).resolve().parent.joinpath('protobuf', 'generated'))
         package_python_path = 'federatedml.protobuf.generated'
         for f in os.listdir(package_path):
             if f.startswith('.'):

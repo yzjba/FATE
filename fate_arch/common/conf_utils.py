@@ -14,22 +14,15 @@
 #  limitations under the License.
 #
 
-import os
-from fate_arch.common import file_utils
-
-CONF_PATH = "conf/service_conf.yaml"
-
-
-def conf_realpath():
-    return os.path.join(file_utils.get_project_base_directory(), CONF_PATH)
+from fate_config import load_service_config, dump_service_config
 
 
 def get_base_config(key, default=None):
-    base_config = file_utils.load_yaml_conf(conf_path=conf_realpath()) or dict()
+    base_config = load_service_config()
     return base_config.get(key, default)
 
 
 def update_config(key, value):
-    config = file_utils.load_yaml_conf(conf_path=conf_realpath()) or dict()
+    config = load_service_config()
     config[key] = value
-    file_utils.rewrite_yaml_conf(conf_path=conf_realpath(), config=config)
+    dump_service_config(config)

@@ -21,7 +21,7 @@ import os
 from logging.handlers import TimedRotatingFileHandler
 from threading import RLock
 
-from fate_arch.common import file_utils
+from fate_config import get_logs_base_dir
 
 
 class LoggerFactory(object):
@@ -57,7 +57,7 @@ class LoggerFactory(object):
             LoggerFactory.append_to_parent_log = append_to_parent_log
         with LoggerFactory.lock:
             if not directory:
-                directory = os.path.join(file_utils.get_project_base_directory(), 'logs')
+                directory = get_logs_base_dir()
             if not LoggerFactory.LOG_DIR or force:
                 LoggerFactory.LOG_DIR = directory
             os.makedirs(LoggerFactory.LOG_DIR, exist_ok=True)
@@ -167,8 +167,8 @@ class LoggerFactory(object):
 
     @staticmethod
     def get_schedule_logger(job_id='', log_type='schedule'):
-        fate_flow_log_dir = os.path.join(file_utils.get_project_base_directory(), 'logs', 'fate_flow')
-        job_log_dir = os.path.join(file_utils.get_project_base_directory(), 'logs', job_id)
+        fate_flow_log_dir = os.path.join(get_logs_base_dir(), 'fate_flow')
+        job_log_dir = os.path.join(get_logs_base_dir(), 'logs', job_id)
         if not job_id:
             log_dirs = [fate_flow_log_dir]
         else:

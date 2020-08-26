@@ -1,10 +1,11 @@
 import json
 import os
+import pathlib
 import time
 import unittest
 
 import requests
-from fate_arch.common import file_utils
+from fate_arch.common import json_utils
 
 from fate_flow.settings import HTTP_PORT, API_VERSION, WORK_MODE
 
@@ -19,9 +20,10 @@ class TestTracking(unittest.TestCase):
         self.server_url = "http://{}:{}/{}".format('127.0.0.1', HTTP_PORT, API_VERSION)
 
     def test_tracking(self):
-        with open(os.path.join(file_utils.get_project_base_directory(), self.dsl_path), 'r') as f:
+        import fate_flow
+        with pathlib.Path(fate_flow.__file__).resolve().parent.parent.joinpath(self.dsl_path).open("r") as f:
             dsl_data = json.load(f)
-        with open(os.path.join(file_utils.get_project_base_directory(), self.config_path), 'r') as f:
+        with pathlib.Path(fate_flow.__file__).resolve().parent.parent.joinpath(self.config_path).open("r") as f:
             config_data = json.load(f)
             config_data['job_parameters']['work_mode'] = WORK_MODE
         response = requests.post("/".join([self.server_url, 'job', 'submit']),
@@ -68,7 +70,7 @@ class TestTracking(unittest.TestCase):
 
 def test_component(self, fun):
     job_id = os.listdir(os.path.abspath(os.path.join(self.success_job_dir)))[-1]
-    job_info = file_utils.load_json_conf(os.path.abspath(os.path.join(self.success_job_dir, job_id)))
+    job_info = json_utils.load_json(os.path.abspath(os.path.join(self.success_job_dir, job_id)))
     data = {'job_id': job_id, 'role': job_info['f_role'], 'party_id': job_info['f_party_id'], 'component_name': self.test_component_name}
     if 'download' in fun:
         response = requests.get("/".join([self.server_url, "tracking", fun]), json=data, stream=True)

@@ -15,3 +15,4 @@
 #
 
 from fate_config._utils import *
+from fate_config._service_config import *

@@ -28,9 +28,18 @@ def get_config_path(name):
     return get_config_base_path().joinpath(name)
 
 
+def get_fate_env_path():
+    return get_config_path("fate.env")
+
+
 def load_config(name):
-    with get_config_base_path().joinpath(name) as f:
+    with get_config_path(name).open() as f:
         return yaml.safe_load(f)
+
+
+def dump_config(name, config):
+    with get_config_path(name).open("r") as f:
+        return yaml.safe_dump(config, f)
 
 
 def copy_config(path, name):

@@ -32,9 +32,10 @@ import numpy as np
 from cachetools import LRUCache
 from cachetools import cached
 
-from fate_arch.common import file_utils, Party
+from fate_arch.common import Party
 from fate_arch.common.log import getLogger
 from fate_arch.standalone import _cloudpickle as f_pickle
+from fate_config import get_project_base_dir
 
 LOGGER = getLogger()
 
@@ -432,7 +433,7 @@ def _put_to_meta_table(key, value):
     _get_meta_table().put(key, value)
 
 
-_data_dir = Path(file_utils.get_project_base_directory()).joinpath('data').absolute()
+_data_dir = Path(get_project_base_dir()).joinpath('data').absolute()
 
 
 def _get_data_dir():

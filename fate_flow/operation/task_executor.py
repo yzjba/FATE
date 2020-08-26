@@ -16,8 +16,9 @@
 import argparse
 import importlib
 import os
+import pathlib
 import traceback
-from fate_arch.common import file_utils, log
+from fate_arch.common import log, json_utils
 from fate_arch.common.base_utils import current_timestamp, timestamp_to_date
 from fate_arch.common.log import schedule_logger
 from fate_arch import session
@@ -100,7 +101,7 @@ class TaskExecutor(object):
             task_output_dsl = component.get_output()
             component_parameters_on_party['output_data_name'] = task_output_dsl.get('data')
             # task_parameters = file_utils.load_json_conf(args.config)
-            task_parameters = RunParameters(**file_utils.load_json_conf(args.config))
+            task_parameters = RunParameters(**json_utils.load_json(args.config))
             TaskExecutor.monkey_patch()
         except Exception as e:
             traceback.print_exc()
@@ -303,9 +304,10 @@ class TaskExecutor(object):
 
     @classmethod
     def monkey_patch(cls):
+        import fate_flow
         package_name = "monkey_patch"
-        package_path = os.path.join(file_utils.get_project_base_directory(), "fate_flow", package_name)
-        if not os.path.exists(package_path):
+        package_path = pathlib.Path(fate_flow.__file__).resolve().parent.joinpath(package_name)
+        if not package_path.exists():
             return
         for f in os.listdir(package_path):
             if not os.path.isdir(f) or f == "__pycache__":
