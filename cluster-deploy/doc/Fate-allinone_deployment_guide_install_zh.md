@@ -12,6 +12,8 @@
 |   用户   | 用户：app，属主：apps（app用户需可以sudo su root而无需密码） |
 | 文件系统 | 1.  500G硬盘挂载在/ data目录下； 2.创建/ data / projects目录，目录属主为：app:apps |
 
+注：硬盘并不需要那么大，内存是要足够大的，据说会出现未知错误，如果可以选择，系统尽量选择CentOS，我试过2G内存的Ubuntu，失败了。
+
 2.集群规划
 ==========
 
@@ -62,6 +64,8 @@ vim /etc/hosts
 192.168.0.1 VM_0_1_centos
 
 192.168.0.2 VM_0_2_centos
+
+注：这种操作的步骤，都是用vim打开，添加下面内容的意思
 
 4.2 关闭selinux(可选)
 ---------------
@@ -135,6 +139,13 @@ app ALL=(ALL) NOPASSWD: ALL
 
 Defaults !env_reset
 
+注：这是配置app用户sudo时免输入密码，设置之后试一下确认有效。如果无效，可以直接修改/etc/sudoers
+注：这里增加一个步骤，在root用户执行，创建路径，给予app用户操作权限，确保第5步能顺利执行
+mkdir -p /data/projects/fate
+mkdir -p /data/projects/install
+chown -R app:apps /data/projects
+
+
 **3）配置ssh无密登录**
 
 **a. 在目标服务器（192.168.0.1 192.168.0.2）app用户下执行**
@@ -171,6 +182,8 @@ scp \~/.ssh/authorized_keys app\@192.168.0.1:/home/app/.ssh
 ssh app\@192.168.0.1
 
 ssh app\@192.168.0.2
+
+注：两台机器都要分别运行这两句，确认可以访问两台机器，1不仅访问2,1也要能访问1，运行以后检查一下，vi ~/.ssh/known_hosts，必须看到两台机器都在列表中才行
 
 ## 4.6 增加虚拟内存
 
@@ -241,6 +254,8 @@ Swap:        131071           0      131071
 
 ```
 
+注：不需要这么大，我用的35G
+
 5.项目部署
 ==========
 
@@ -280,6 +295,8 @@ sh ./check.sh
 ----------------
 
 **在目标服务器（192.168.0.1）app用户下执行**
+
+注：基本只要修改IP就可以了
 
 修改配置文件fate-cluster-install/allInone/conf/setup.conf.
 
@@ -446,6 +463,8 @@ tail -f ./logs/deploy-host.log    （实时打印HOST端的部署情况）
 tail -f ./logs/deploy-mysql-host.log    （实时打印HOST端mysql的部署情况）
 ```
 
+注：-f是实时打印，去掉是显示tail。这里需要6-7分钟左右，运行完再查看tail即可。我是在./logs下运行ls -l，当文件修改时间不变后，说明安装完成，即可查看日志
+
 ## 5.5 问题定位
 
 1）eggroll日志
@@ -491,6 +510,8 @@ python run_toy_example.py 10000 10000 1
 类似如下结果表示成功：
 
 "2020-04-28 18:26:20,789 - secure_add_guest.py[line:126] - INFO: success to calculate secure_sum, it is 1999.9999999999998"
+
+注：运行有点慢，需要几十秒钟
 
 2）192.168.0.2上执行，guest_partyid和host_partyid都设为9999：
 
